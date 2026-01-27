@@ -1,0 +1,54 @@
+package main
+
+import (
+	"context"
+	"errors"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/zulerne/url-shortener/internal/config"
+	"github.com/zulerne/url-shortener/internal/logger"
+	"github.com/zulerne/url-shortener/internal/server"
+	"github.com/zulerne/url-shortener/internal/storage/sqlite"
+)
+
+func main() {
+	cfg := config.MustLoad()
+
+	logger.SetupLogger(cfg.Env)
+	slog.Info("Starting url-shortener", "env", cfg.Env)
+	slog.Debug("Debug messages are enabled")
+
+	storage, err := sqlite.New(cfg.StoragePath)
+	if err != nil {
+		slog.Error("failed to initialize storage", "error", err)
+		os.Exit(1)
+	}
+
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+
+	srv := &server.Server{
+		HttpServer: &http.Server{
+			Addr:    cfg.HttpConfig.Address,
+			Handler: server.NewHandler(storage),
+		},
+		ShutdownTimeout: cfg.HttpConfig.Timeout,
+	}
+
+	err = srv.Listen(ctx)
+
+	if err != nil && !errors.Is(err, context.DeadlineExceeded) {
+		slog.Error("server error", "error", err)
+		os.Exit(1)
+	}
+
+	slog.Info("Server stopped gracefully")
+
+	// todo: init router: standard
+
+	// todo: run server
+}
