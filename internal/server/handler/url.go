@@ -13,28 +13,24 @@ import (
 	"github.com/zulerne/url-shortener/internal/storage"
 )
 
-type Request struct {
+type CreateURLRequest struct {
 	URL   string `json:"url" validate:"required,url"`
 	Alias string `json:"alias,omitempty"`
 }
 
-type Response struct {
+type CreateURLResponse struct {
 	response.Response
 	Alias string `json:"alias,omitempty"`
 }
 
-type URLSaver interface {
-	SaveURL(url string, alias string) (int64, error)
-}
-
-func (h *Handler) createShortURL(w http.ResponseWriter, r *http.Request) {
-	const op = "handler.save.createShortURL"
+func (h *Handler) createURL(w http.ResponseWriter, r *http.Request) {
+	const op = "handler.save.createURL"
 	log := slog.With(
 		"op", op,
 		string(middleware.RequestIDKey), middleware.GetRequestID(r.Context()),
 	)
 
-	var req Request
+	var req CreateURLRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		log.Error("failed to decode request body", "error", err)
@@ -77,7 +73,7 @@ func (h *Handler) createShortURL(w http.ResponseWriter, r *http.Request) {
 
 	log.Info("url saved", "id", id, "alias", alias)
 
-	h.renderJSON(w, http.StatusOK, Response{
+	h.renderJSON(w, http.StatusOK, CreateURLResponse{
 		Response: response.Ok(),
 		Alias:    alias,
 	})

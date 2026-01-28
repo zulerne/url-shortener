@@ -10,7 +10,7 @@ import (
 	"syscall"
 
 	"github.com/zulerne/url-shortener/internal/config"
-	"github.com/zulerne/url-shortener/internal/logger"
+	"github.com/zulerne/url-shortener/internal/lib/logger"
 	"github.com/zulerne/url-shortener/internal/server"
 	"github.com/zulerne/url-shortener/internal/server/handler"
 	"github.com/zulerne/url-shortener/internal/storage/sqlite"

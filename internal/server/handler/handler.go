@@ -7,18 +7,25 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/zulerne/url-shortener/internal/server/middleware"
-	"github.com/zulerne/url-shortener/internal/storage"
 )
+
+// Storage defines the interface for URL storage operations.
+// This allows swapping implementations (sqlite, postgres, redis, etc.)
+type Storage interface {
+	SaveURL(url string, alias string) (int64, error)
+	GetURL(alias string) (string, error)
+	DeleteURL(alias string) error
+}
 
 // Handler holds all dependencies for HTTP handlers
 type Handler struct {
-	storage     storage.URLStorage
+	storage     Storage
 	validator   *validator.Validate
 	aliasLength int
 }
 
 // NewHandler creates a new Handler with the given dependencies
-func NewHandler(storage storage.URLStorage, aliasLength int) http.Handler {
+func NewHandler(storage Storage, aliasLength int) http.Handler {
 	h := &Handler{
 		storage:     storage,
 		validator:   validator.New(),
@@ -29,7 +36,7 @@ func NewHandler(storage storage.URLStorage, aliasLength int) http.Handler {
 
 	// Register routes
 	mux.HandleFunc("GET /health", h.healthCheck)
-	mux.HandleFunc("POST /url", h.createShortURL)
+	mux.HandleFunc("POST /url", h.createURL)
 	//mux.HandleFunc("GET /{alias}", h.redirect)
 	//mux.HandleFunc("DELETE /url/{alias}", h.deleteURL)
 
