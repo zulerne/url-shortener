@@ -24,7 +24,7 @@ var reqid atomic.Uint64
 // If X-Request-ID header is present in the request, it uses that value.
 // Otherwise, it generates a new unique ID.
 func RequestID(next http.Handler) http.Handler {
-	slog.Info("RequestID middleware enabled")
+	slog.Debug("RequestID middleware enabled")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		requestID := r.Header.Get(RequestIDHeader)

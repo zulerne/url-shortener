@@ -44,7 +44,7 @@ func (rw *responseWriter) Unwrap() http.ResponseWriter {
 // Logs a single line after the request completes (like Chi, Gin, Echo).
 // Should be used after RequestID middleware in the chain.
 func Logger(next http.Handler) http.Handler {
-	slog.Info("Logger middleware enabled")
+	slog.Debug("Logger middleware enabled")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Wrap response writer to capture status code
 		ww := newWrapResponseWriter(w)

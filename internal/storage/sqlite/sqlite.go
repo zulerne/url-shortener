@@ -7,11 +7,7 @@ import (
 	"log/slog"
 
 	"github.com/mattn/go-sqlite3"
-)
-
-var (
-	ErrAliasExists = fmt.Errorf("alias already exists")
-	ErrNotFound    = fmt.Errorf("url not found")
+	"github.com/zulerne/url-shortener/internal/storage"
 )
 
 type Storage struct {
@@ -58,7 +54,7 @@ func (s *Storage) SaveURL(urlToSave string, alias string) (int64, error) {
 		var sqliteErr sqlite3.Error
 		if errors.As(err, &sqliteErr) && (errors.Is(sqliteErr.ExtendedCode, sqlite3.ErrConstraintUnique)) {
 			slog.Info("hiii")
-			return 0, fmt.Errorf("%s: %w", op, ErrAliasExists)
+			return 0, fmt.Errorf("%s: %w", op, storage.ErrAliasExists)
 		}
 
 		return 0, fmt.Errorf("%s: execute statement: %w", op, err)
@@ -85,7 +81,7 @@ func (s *Storage) GetURL(alias string) (string, error) {
 	err = stmt.QueryRow(alias).Scan(&url)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", ErrNotFound
+			return "", storage.ErrNotFound
 		}
 		return "", fmt.Errorf("%s: execute statement: %w", op, err)
 

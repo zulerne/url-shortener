@@ -10,7 +10,7 @@ import (
 // with a stack trace, and returns HTTP 500 (Internal Server Error).
 // Based on go-chi/chi middleware.
 func Recoverer(next http.Handler) http.Handler {
-	slog.Info("Recoverer middleware enabled")
+	slog.Debug("Recoverer middleware enabled")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rvr := recover(); rvr != nil {

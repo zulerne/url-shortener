@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -15,6 +16,7 @@ const (
 type Config struct {
 	Env         string
 	StoragePath string
+	AliasLength int
 	HttpConfig  HttpConfig
 }
 
@@ -29,6 +31,7 @@ func MustLoad() *Config {
 	cfg := &Config{
 		Env:         fetchString("ENV", "local"),
 		StoragePath: fetchStringRequired("STORAGE_PATH"),
+		AliasLength: fetchInt("ALIAS_LENGTH", 6),
 		HttpConfig: HttpConfig{
 			Address:         fetchStringRequired("HTTP_ADDRESS"),
 			Timeout:         fetchDuration("HTTP_TIMEOUT", 5*time.Second),
@@ -65,4 +68,16 @@ func fetchDuration(key string, def time.Duration) time.Duration {
 		log.Fatalf("%s is not a valid duration", key)
 	}
 	return dur
+}
+
+func fetchInt(key string, def int) int {
+	val, exists := os.LookupEnv(key)
+	if !exists || val == "" {
+		return def
+	}
+	i, err := strconv.Atoi(val)
+	if err != nil {
+		log.Fatalf("%s is not a valid integer", key)
+	}
+	return i
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/zulerne/url-shortener/internal/config"
 	"github.com/zulerne/url-shortener/internal/logger"
 	"github.com/zulerne/url-shortener/internal/server"
+	"github.com/zulerne/url-shortener/internal/server/handler"
 	"github.com/zulerne/url-shortener/internal/storage/sqlite"
 )
 
@@ -33,12 +34,15 @@ func main() {
 
 	srv := &server.Server{
 		HttpServer: &http.Server{
-			Addr:    cfg.HttpConfig.Address,
-			Handler: server.NewHandler(storage),
+			Addr:         cfg.HttpConfig.Address,
+			Handler:      handler.NewHandler(storage, cfg.AliasLength),
+			ReadTimeout:  cfg.HttpConfig.Timeout,
+			WriteTimeout: cfg.HttpConfig.Timeout,
+			IdleTimeout:  cfg.HttpConfig.IdleTimeout,
 		},
 		ShutdownTimeout: cfg.HttpConfig.Timeout,
 	}
-
+	// todo: Maybe remove blocking operation
 	err = srv.Listen(ctx)
 
 	if err != nil && !errors.Is(err, context.DeadlineExceeded) {
@@ -47,8 +51,4 @@ func main() {
 	}
 
 	slog.Info("Server stopped gracefully")
-
-	// todo: init router: standard
-
-	// todo: run server
 }
