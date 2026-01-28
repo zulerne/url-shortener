@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log/slog"
 
 	"github.com/mattn/go-sqlite3"
 	"github.com/zulerne/url-shortener/internal/storage"
@@ -53,7 +52,6 @@ func (s *Storage) SaveURL(urlToSave string, alias string) (int64, error) {
 	if err != nil {
 		var sqliteErr sqlite3.Error
 		if errors.As(err, &sqliteErr) && (errors.Is(sqliteErr.ExtendedCode, sqlite3.ErrConstraintUnique)) {
-			slog.Info("hiii")
 			return 0, fmt.Errorf("%s: %w", op, storage.ErrAliasExists)
 		}
 
