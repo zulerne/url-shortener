@@ -43,9 +43,8 @@ func main() {
 		ShutdownTimeout: cfg.HttpConfig.Timeout,
 	}
 	// todo: Maybe remove blocking operation
-	err = srv.Listen(ctx)
 
-	if err != nil && !errors.Is(err, context.DeadlineExceeded) {
+	if err = srv.Listen(ctx); err != nil && !errors.Is(err, context.DeadlineExceeded) {
 		slog.Error("server error", "error", err)
 		os.Exit(1)
 	}
