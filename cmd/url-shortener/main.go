@@ -35,7 +35,7 @@ func main() {
 	srv := &server.Server{
 		HttpServer: &http.Server{
 			Addr:         cfg.HttpConfig.Address,
-			Handler:      handler.NewHandler(storage, cfg.AliasLength),
+			Handler:      handler.NewHandler(storage, cfg.AliasLength, cfg.HttpConfig.User, cfg.HttpConfig.Password),
 			ReadTimeout:  cfg.HttpConfig.Timeout,
 			WriteTimeout: cfg.HttpConfig.Timeout,
 			IdleTimeout:  cfg.HttpConfig.IdleTimeout,

@@ -25,7 +25,7 @@ type Handler struct {
 }
 
 // NewHandler creates a new Handler with the given dependencies
-func NewHandler(storage Storage, aliasLength int) http.Handler {
+func NewHandler(storage Storage, aliasLength int, user, password string) http.Handler {
 	h := &Handler{
 		storage:     storage,
 		validator:   validator.New(),
@@ -34,12 +34,14 @@ func NewHandler(storage Storage, aliasLength int) http.Handler {
 
 	mux := http.NewServeMux()
 
+	authMiddleware := middleware.BasicAuth(map[string]string{
+		user: password,
+	})
+
 	// Register routes
 	mux.HandleFunc("GET /health", h.healthCheck)
-	mux.HandleFunc("POST /url", h.createURL)
+	mux.Handle("POST /url", authMiddleware(http.HandlerFunc(h.createURL)))
 	mux.HandleFunc("GET /{alias}", h.redirect)
-	//mux.HandleFunc("DELETE /url/{alias}", h.deleteURL)
-
 	// Apply middleware chain (order: first listed = first executed)
 	// Recoverer -> RequestID -> Logger -> handler
 	return middleware.Chain(mux,

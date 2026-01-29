@@ -25,6 +25,8 @@ type HttpConfig struct {
 	Timeout         time.Duration
 	IdleTimeout     time.Duration
 	ShutdownTimeout time.Duration
+	User            string
+	Password        string
 }
 
 func MustLoad() *Config {
@@ -37,6 +39,8 @@ func MustLoad() *Config {
 			Timeout:         fetchDuration("HTTP_TIMEOUT", 5*time.Second),
 			IdleTimeout:     fetchDuration("HTTP_IDLE_TIMEOUT", 60*time.Second),
 			ShutdownTimeout: fetchDuration("HTTP_SHUTDOWN_TIMEOUT", 5*time.Second),
+			User:            fetchString("HTTP_USER", ""),
+			Password:        fetchString("HTTP_PASSWORD", ""),
 		},
 	}
 
