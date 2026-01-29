@@ -37,7 +37,7 @@ func NewHandler(storage Storage, aliasLength int) http.Handler {
 	// Register routes
 	mux.HandleFunc("GET /health", h.healthCheck)
 	mux.HandleFunc("POST /url", h.createURL)
-	//mux.HandleFunc("GET /{alias}", h.redirect)
+	mux.HandleFunc("GET /{alias}", h.redirect)
 	//mux.HandleFunc("DELETE /url/{alias}", h.deleteURL)
 
 	// Apply middleware chain (order: first listed = first executed)

@@ -24,7 +24,7 @@ type CreateURLResponse struct {
 }
 
 func (h *Handler) createURL(w http.ResponseWriter, r *http.Request) {
-	const op = "handler.save.createURL"
+	const op = "handler.createURL"
 	log := slog.With(
 		"op", op,
 		string(middleware.RequestIDKey), middleware.GetRequestID(r.Context()),
@@ -40,12 +40,12 @@ func (h *Handler) createURL(w http.ResponseWriter, r *http.Request) {
 	log.Info("request received", "request", req)
 
 	if err := h.validator.Struct(req); err != nil {
-		log.Error("validation error", "error", err)
+		msg := "validation error"
+		log.Error(msg, "error", err)
 
 		var validationErr validator.ValidationErrors
 		if !errors.As(err, &validationErr) {
-			log.Error("unexpected validation error", "error", err)
-			h.renderJSON(w, http.StatusInternalServerError, response.Error("internal error"))
+			h.renderJSON(w, http.StatusInternalServerError, response.Error(msg))
 			return
 		}
 
@@ -60,14 +60,15 @@ func (h *Handler) createURL(w http.ResponseWriter, r *http.Request) {
 
 	id, err := h.storage.SaveURL(req.URL, alias)
 	if err != nil {
-		log.Error("failed to save url", "error", err)
+		msg := "failed to save url"
+		log.Error(msg, "error", err)
 
 		if errors.Is(err, storage.ErrAliasExists) {
 			h.renderJSON(w, http.StatusConflict, response.Error(storage.ErrAliasExists.Error()))
 			return
 		}
 
-		h.renderJSON(w, http.StatusInternalServerError, response.Error("failed to save url"))
+		h.renderJSON(w, http.StatusInternalServerError, response.Error(msg))
 		return
 	}
 
@@ -77,4 +78,39 @@ func (h *Handler) createURL(w http.ResponseWriter, r *http.Request) {
 		Response: response.Ok(),
 		Alias:    alias,
 	})
+}
+
+func (h *Handler) redirect(w http.ResponseWriter, r *http.Request) {
+	const op = "handler.redirect"
+
+	log := slog.With(
+		"op", op,
+		string(middleware.RequestIDKey), middleware.GetRequestID(r.Context()),
+	)
+
+	alias := r.URL.Path[1:]
+
+	if alias == "" {
+		log.Info("alias is empty")
+		h.renderJSON(w, http.StatusBadRequest, response.Error("alias is empty"))
+		return
+	}
+
+	url, err := h.storage.GetURL(alias)
+	if err != nil {
+		msg := "failed to get url"
+		log.Error(msg, "error", err)
+
+		if errors.Is(err, storage.ErrNotFound) {
+			h.renderJSON(w, http.StatusNotFound, response.Error(storage.ErrNotFound.Error()))
+			return
+		}
+
+		h.renderJSON(w, http.StatusInternalServerError, response.Error(msg))
+		return
+	}
+
+	log.Info("url found", "url", url)
+
+	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
