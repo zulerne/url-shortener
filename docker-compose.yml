@@ -1,0 +1,12 @@
+services:
+  url-shortener:
+    build: .
+    image: url-shortener:latest
+    container_name: url-shortener
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./storage:/root/storage
+    env_file:
+      - .env
+    restart: unless-stopped
