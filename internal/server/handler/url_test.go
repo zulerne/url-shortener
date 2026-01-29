@@ -211,15 +211,17 @@ func TestRedirectHandler(t *testing.T) {
 	slog.SetDefault(logger.NewDiscardLogger())
 
 	cases := []struct {
-		name      string
-		code      int
-		alias     string
-		mockSetup func(s *MockStorage)
+		name        string
+		code        int
+		alias       string
+		redirectURL string
+		mockSetup   func(s *MockStorage)
 	}{
 		{
-			name:  "Success",
-			code:  http.StatusTemporaryRedirect,
-			alias: "test_alias",
+			name:        "Success",
+			code:        http.StatusTemporaryRedirect,
+			alias:       "test_alias",
+			redirectURL: "https://google.com",
 			mockSetup: func(s *MockStorage) {
 				s.EXPECT().
 					GetURL("test_alias").
@@ -259,6 +261,10 @@ func TestRedirectHandler(t *testing.T) {
 			h.ServeHTTP(w, req)
 
 			require.Equal(t, tc.code, w.Code)
+
+			if tc.redirectURL != "" {
+				require.Equal(t, tc.redirectURL, w.Header().Get("Location"))
+			}
 		})
 	}
 }
